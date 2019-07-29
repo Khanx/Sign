@@ -22,6 +22,9 @@ namespace Sign
         {
             string text = command.Substring(command.IndexOf(" ") + 1);
 
+            if(setSign.ContainsKey(player.ID))
+                setSign.Remove(player.ID);
+
             setSign.Add(player.ID, text);
             return true;
         }
