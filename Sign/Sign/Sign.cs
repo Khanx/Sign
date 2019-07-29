@@ -4,86 +4,45 @@ using System.Collections.Generic;
 using Pipliz;
 using Pipliz.JSON;
 
-using ExtendedAPI.Types;
-using ExtendedAPI.Commands;
 using Shared;
 using NetworkUI;
+using BlockEntities;
+using NetworkUI.Items;
 
 namespace Sign
 {
-    [AutoLoadCommand]
-    public class SignCommand : BaseCommand
+    [BlockEntityAutoLoader]
+    public class SignType : IChangedWithType, IMultiBlockEntityMapping
     {
-        public static Dictionary<NetworkID, string> setSign = new Dictionary<NetworkID, string>();
+        public ItemTypes.ItemType TypeToRegister { get { return ItemTypes.GetType("Khanx.Sign"); } }
 
-        public SignCommand() { startWith.Add("/setsign"); }
+        public IEnumerable<ItemTypes.ItemType> TypesToRegister { get { return types; } }
 
-        public override bool TryDoCommand(Players.Player player, string command)
-        {
-            string text = command.Substring(command.IndexOf(" ") + 1);
-
-            if(setSign.ContainsKey(player.ID))
-                setSign.Remove(player.ID);
-
-            setSign.Add(player.ID, text);
-            return true;
-        }
-    }
-
-    [AutoLoadType]
-    public class SignType : BaseType
-    {
-        public SignType() { key = "Khanx.Sign"; }
-
-        public override void OnRightClickOn(Players.Player player, Box<PlayerClickedData> boxedData)
-        {
-            Vector3Int position = boxedData.item1.VoxelHit;
-
-            if(!SignManager.signs.ContainsKey(position))
-                return;
-
-            if(SignCommand.setSign.ContainsKey(player.ID))
+        ItemTypes.ItemType[] types = new ItemTypes.ItemType[]
             {
-                if(SignManager.signs[position].owner == player.ID || Permissions.PermissionsManager.HasPermission(player, "khanx.setsign"))
-                {
-                    Sign sign = SignManager.signs[position];
+                 ItemTypes.GetType("Khanx.Signx-"),
+                 ItemTypes.GetType("Khanx.Signx+"),
+                 ItemTypes.GetType("Khanx.Signz-"),
+                ItemTypes.GetType("Khanx.Signz+")
+            };
 
-                    SignManager.signs[position] = new Sign(sign.owner, SignCommand.setSign[player.ID]);
+    public virtual void OnChangedWithType(Chunk chunk, BlockChangeRequestOrigin origin, Vector3Int blockPosition, ItemTypes.ItemType typeOld, ItemTypes.ItemType typeNew)
+        {
+            //OnRemove
+            if (typeNew == BlockTypes.BuiltinBlocks.Types.air)
+                SignManager.signs.Remove(blockPosition);
 
-                    SignCommand.setSign.Remove(player.ID);
+            //OnAdd
+            if (typeOld == BlockTypes.BuiltinBlocks.Types.air)
+            {
+                if (SignManager.signs.ContainsKey(blockPosition))
+                    return;
 
-                    Pipliz.Chatting.Chat.Send(player, "<color=lime>You have changed the text of the sign.</color>");
-
-                    Players.Player owner = Players.GetPlayer(sign.owner);
-
-                    if(player != owner)
-                        if(null != owner && owner.IsConnected)
-                            Pipliz.Chatting.Chat.Send(owner, string.Format("<color=lime>{0} has changed the text of your sign.</color>", player.Name));
-                }
+                if(origin.Type == BlockChangeRequestOrigin.EType.Player)
+                    SignManager.signs.Add(blockPosition, new Sign(origin.AsPlayer.ID, "-"));
                 else
-                {
-                    Pipliz.Chatting.Chat.Send(player, "<color=orange>Only the owner of the sign can change it.</color>");
-                    SignCommand.setSign.Remove(player.ID);
-                }
+                    SignManager.signs.Add(blockPosition, new Sign(new NetworkID(), "-"));
             }
-
-            NetworkMenu menu = new NetworkMenu();
-
-            menu.LocalStorage.SetAs("header", "Sign");
-            menu.Items.Add(new NetworkUI.Items.Label(new LabelData(SignManager.signs[position].text, UnityEngine.Color.white, UnityEngine.TextAnchor.MiddleCenter, 32)));
-
-            NetworkMenuManager.SendServerPopup(player, menu);
-        }
-
-        public override void RegisterOnAdd(Vector3Int position, ushort newType, Players.Player causedBy)
-        {
-            SignManager.signs.Add(position, new Sign(causedBy.ID, "-"));
-            Pipliz.Chatting.Chat.Send(causedBy, "<color=lime>You can use /setsign <text> & use the sign to set the text of the sign.</color>");
-        }
-
-        public override void RegisterOnRemove(Vector3Int position, ushort type, Players.Player causedBy)
-        {
-            SignManager.signs.Remove(position);
         }
     }
 
@@ -152,5 +111,66 @@ namespace Sign
             JSON.Serialize(signFile, json, 2);
         }
 
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerClicked, "Khanx.Sign.OnPlayerClickedType")]
+        public static void OnPlayerClicked(Players.Player player, Shared.PlayerClickedData playerClickedData)
+        {
+            if (playerClickedData.ClickType != PlayerClickedData.EClickType.Right)
+                return;
+
+            if (playerClickedData.HitType != PlayerClickedData.EHitType.Block )
+                return;
+
+            if (!ItemTypes.GetType(playerClickedData.GetVoxelHit().TypeHit).HasParentType(ItemTypes.GetType("Khanx.Sign")))
+                return;
+            
+            Vector3Int position = playerClickedData.GetVoxelHit().BlockHit;
+
+            if (!signs.ContainsKey(position))
+                signs.Add(position, new Sign(player.ID, "-"));
+
+            Sign s = signs[position];
+
+            NetworkMenu signMenu = new NetworkMenu();
+            signMenu.Identifier = "Sign";
+            signMenu.LocalStorage.SetAs("header", "Sign");
+
+            if (signs[position].owner == player.ID || PermissionsManager.HasPermission(player, "khanx.setsign"))
+            {
+                InputField inputField = new InputField("Khanx.Sign." + position.x + "." + position.y + "." + position.z,-1, 100);
+
+                //default value
+                signMenu.LocalStorage.SetAs("Khanx.Sign." + position.x + "." + position.y + "." + position.z, s.text);
+
+                signMenu.Items.Add(inputField);
+            }
+            else
+            {
+                signMenu.Items.Add(new Label(new LabelData(signs[position].text, UnityEngine.Color.white, UnityEngine.TextAnchor.MiddleCenter, 32)));
+            }
+
+            NetworkMenuManager.SendServerPopup(player, signMenu);
+        }
+
+
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerEditedNetworkInputfield, "Khanx.Warning.OnPlayerEditedNetworkInputfield")]
+        public static void OnPlayerEditedNetworkInputfield(InputfieldEditCallbackData data)
+        {
+            if (data.InputfieldIdentifier.StartsWith("Khanx.Sign."))
+            {
+                data.Storage.TryGetAsOrDefault<string>(data.InputfieldIdentifier, out string text, "-");
+
+                string[] sPosition = data.InputfieldIdentifier.Substring(11).Split('.'); // 11 = Khanx.Sign.
+                Vector3Int position = new Vector3Int(int.Parse(sPosition[0]), int.Parse(sPosition[1]), int.Parse(sPosition[2]));
+
+                Sign sign = signs.GetValueOrDefault(position, new Sign(data.Player.ID, text));
+
+                sign.text = text;
+
+                if (signs.ContainsKey(position))
+                    signs.Remove(position);
+
+                signs.Add(position, sign);
+            }
+        }
     }
 }
