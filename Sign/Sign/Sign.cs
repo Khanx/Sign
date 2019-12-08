@@ -152,7 +152,7 @@ namespace Sign
         }
 
 
-        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerEditedNetworkInputfield, "Khanx.Warning.OnPlayerEditedNetworkInputfield")]
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerEditedNetworkInputfield, "Khanx.Sign.OnPlayerEditedNetworkInputfield")]
         public static void OnPlayerEditedNetworkInputfield(InputfieldEditCallbackData data)
         {
             if (data.InputfieldIdentifier.StartsWith("Khanx.Sign."))
