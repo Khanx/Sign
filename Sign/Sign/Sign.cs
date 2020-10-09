@@ -8,6 +8,8 @@ using Shared;
 using NetworkUI;
 using BlockEntities;
 using NetworkUI.Items;
+using colonyserver.Assets.UIGeneration;
+using static colonyshared.NetworkUI.UIGeneration.WorldMarkerSettings;
 
 namespace Sign
 {
@@ -26,7 +28,7 @@ namespace Sign
                 ItemTypes.GetType("Khanx.Signz+")
             };
 
-    public virtual void OnChangedWithType(Chunk chunk, BlockChangeRequestOrigin origin, Vector3Int blockPosition, ItemTypes.ItemType typeOld, ItemTypes.ItemType typeNew)
+        public virtual void OnChangedWithType(Chunk chunk, BlockChangeRequestOrigin origin, Vector3Int blockPosition, ItemTypes.ItemType typeOld, ItemTypes.ItemType typeNew)
         {
             //OnRemove
             if (typeNew == BlockTypes.BuiltinBlocks.Types.air)
@@ -38,7 +40,7 @@ namespace Sign
                 if (SignManager.signs.ContainsKey(blockPosition))
                     return;
 
-                if(origin.Type == BlockChangeRequestOrigin.EType.Player)
+                if (origin.Type == BlockChangeRequestOrigin.EType.Player)
                     SignManager.signs.Add(blockPosition, new Sign(origin.AsPlayer.ID, "-"));
                 else
                     SignManager.signs.Add(blockPosition, new Sign(new NetworkID(), "-"));
@@ -54,7 +56,7 @@ namespace Sign
         public Sign(NetworkID owner, string text)
         {
             this.owner = owner;
-            this.text = text;
+            this.text = text.Trim();
         }
     }
 
@@ -69,12 +71,12 @@ namespace Sign
         {
             signFile = "./gamedata/savegames/" + ServerManager.WorldName + "/signs.json";
 
-            if(!File.Exists(signFile))
+            if (!File.Exists(signFile))
                 return;
 
             JSONNode json = JSON.Deserialize(signFile);
 
-            foreach(JSONNode sign in json.LoopArray())
+            foreach (JSONNode sign in json.LoopArray())
             {
                 Vector3Int pos = (Vector3Int)sign["position"];
                 NetworkID owner = NetworkID.Parse(sign.GetAs<string>("owner"));
@@ -88,15 +90,15 @@ namespace Sign
         [ModLoader.ModCallback(ModLoader.EModCallbackType.OnQuit, "Khanx.Sign.Save")]
         public static void SaveSigns()
         {
-            if(File.Exists(signFile))
+            if (File.Exists(signFile))
                 File.Delete(signFile);
 
-            if(signs.Count == 0)
+            if (signs.Count == 0)
                 return;
 
             JSONNode json = new JSONNode(NodeType.Array);
 
-            foreach(Vector3Int pos in signs.Keys)
+            foreach (Vector3Int pos in signs.Keys)
             {
                 Sign sign = signs[pos];
 
@@ -117,12 +119,12 @@ namespace Sign
             if (playerClickedData.ClickType != PlayerClickedData.EClickType.Right)
                 return;
 
-            if (playerClickedData.HitType != PlayerClickedData.EHitType.Block )
+            if (playerClickedData.HitType != PlayerClickedData.EHitType.Block)
                 return;
 
             if (!ItemTypes.GetType(playerClickedData.GetVoxelHit().TypeHit).HasParentType(ItemTypes.GetType("Khanx.Sign")))
                 return;
-            
+
             Vector3Int position = playerClickedData.GetVoxelHit().BlockHit;
 
             if (!signs.ContainsKey(position))
@@ -136,7 +138,8 @@ namespace Sign
 
             if (signs[position].owner == player.ID || PermissionsManager.HasPermission(player, "khanx.setsign"))
             {
-                InputField inputField = new InputField("Khanx.Sign." + position.x + "." + position.y + "." + position.z,-1, 100);
+                InputField inputField = new InputField("Khanx.Sign." + position.x + "." + position.y + "." + position.z, -1, 100);
+                inputField.Multiline = true;
 
                 //default value
                 signMenu.LocalStorage.SetAs("Khanx.Sign." + position.x + "." + position.y + "." + position.z, s.text);
@@ -172,5 +175,32 @@ namespace Sign
                 signs.Add(position, sign);
             }
         }
+
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerMoved, "Khanx.Sign.OnPlayerMoved")]
+        public static void SendSignMarker(Players.Player player, UnityEngine.Vector3 position)
+        {
+
+            foreach (var singPosition in signs.Keys)
+            {
+                if (Math.ManhattanDistance(new Vector3Int(player.Position), singPosition) < 10)
+                {
+                    string singText = signs[singPosition].text;
+                    if (singText.Length > 100)
+                        singText = singText.Substring(0, 100) + "...";
+
+                    UIManager.AddorUpdateWorldMarker("Khanx.Sign" + singPosition + player.Name,
+                                                               singText,
+                                                                singPosition + Vector3Int.up,
+                                                                "Khanx.Sign",
+                                                                ToggleType.AlwaysOn,
+                                                                "Khanx.Sign",
+                                                                player);
+                }
+                else
+                    UIManager.RemoveMarker("Khanx.Sign" + singPosition + player.Name, player);
+            }
+
+        }
+
     }
 }
