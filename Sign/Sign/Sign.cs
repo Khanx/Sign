@@ -10,6 +10,7 @@ using BlockEntities;
 using NetworkUI.Items;
 using colonyserver.Assets.UIGeneration;
 using static colonyshared.NetworkUI.UIGeneration.WorldMarkerSettings;
+using System.Linq;
 
 namespace Sign
 {
@@ -25,7 +26,7 @@ namespace Sign
                  ItemTypes.GetType("Khanx.Signx-"),
                  ItemTypes.GetType("Khanx.Signx+"),
                  ItemTypes.GetType("Khanx.Signz-"),
-                ItemTypes.GetType("Khanx.Signz+")
+                 ItemTypes.GetType("Khanx.Signz+")
             };
 
         public virtual void OnChangedWithType(Chunk chunk, BlockChangeRequestOrigin origin, Vector3Int blockPosition, ItemTypes.ItemType typeOld, ItemTypes.ItemType typeNew)
@@ -36,8 +37,12 @@ namespace Sign
                 SignManager.signs.Remove(blockPosition);
 
                 //Remove the marker
-                if(origin.AsPlayer != null)
-                    UIManager.RemoveMarker("Khanx.Sign" + blockPosition + origin.AsPlayer.Name, origin.AsPlayer);
+                foreach(var mapNPlayer in Players.PlayerDatabase.Where(pl => pl.Value.ConnectionState == Players.EConnectionState.Connected).ToList())
+                {
+                    Players.Player player = mapNPlayer.Value;
+                    if (Math.ManhattanDistance(new Vector3Int(player.Position), blockPosition) <= SignManager.markerDistance)
+                        UIManager.RemoveMarker("Khanx.Sign" + blockPosition + player.Name, player);
+                }
             }
 
             //OnAdd
@@ -182,13 +187,15 @@ namespace Sign
             }
         }
 
+        public static readonly int markerDistance = 10;
+
         [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerMoved, "Khanx.Sign.OnPlayerMoved")]
         public static void SendSignMarker(Players.Player player, UnityEngine.Vector3 position)
         {
 
             foreach (var singPosition in signs.Keys)
             {
-                if (Math.ManhattanDistance(new Vector3Int(player.Position), singPosition) < 10)
+                if (Math.ManhattanDistance(new Vector3Int(player.Position), singPosition) < markerDistance)
                 {
                     string singText = signs[singPosition].text;
                     if (singText.Length > 100)
