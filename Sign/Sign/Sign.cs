@@ -32,7 +32,13 @@ namespace Sign
         {
             //OnRemove
             if (typeNew == BlockTypes.BuiltinBlocks.Types.air)
+            {
                 SignManager.signs.Remove(blockPosition);
+
+                //Remove the marker
+                if(origin.AsPlayer != null)
+                    UIManager.RemoveMarker("Khanx.Sign" + blockPosition + origin.AsPlayer.Name, origin.AsPlayer);
+            }
 
             //OnAdd
             if (typeOld == BlockTypes.BuiltinBlocks.Types.air)
