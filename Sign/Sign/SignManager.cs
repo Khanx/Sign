@@ -6,59 +6,12 @@ using Pipliz.JSON;
 
 using Shared;
 using NetworkUI;
-using BlockEntities;
 using NetworkUI.Items;
 using colonyserver.Assets.UIGeneration;
 using static colonyshared.NetworkUI.UIGeneration.WorldMarkerSettings;
-using System.Linq;
 
 namespace Sign
 {
-    [BlockEntityAutoLoader]
-    public class SignType : IChangedWithType, IMultiBlockEntityMapping
-    {
-        public ItemTypes.ItemType TypeToRegister { get { return ItemTypes.GetType("Khanx.Sign"); } }
-
-        public IEnumerable<ItemTypes.ItemType> TypesToRegister { get { return types; } }
-
-        ItemTypes.ItemType[] types = new ItemTypes.ItemType[]
-            {
-                 ItemTypes.GetType("Khanx.Signx-"),
-                 ItemTypes.GetType("Khanx.Signx+"),
-                 ItemTypes.GetType("Khanx.Signz-"),
-                 ItemTypes.GetType("Khanx.Signz+")
-            };
-
-        public virtual void OnChangedWithType(Chunk chunk, BlockChangeRequestOrigin origin, Vector3Int blockPosition, ItemTypes.ItemType typeOld, ItemTypes.ItemType typeNew)
-        {
-            //OnRemove
-            if (typeNew == BlockTypes.BuiltinBlocks.Types.air)
-            {
-                SignManager.signs.Remove(blockPosition);
-
-                //Remove the marker
-                foreach(var mapNPlayer in Players.PlayerDatabase.Where(pl => pl.Value.ConnectionState == Players.EConnectionState.Connected).ToList())
-                {
-                    Players.Player player = mapNPlayer.Value;
-                    if (Math.ManhattanDistance(new Vector3Int(player.Position), blockPosition) <= SignManager.markerDistance)
-                        UIManager.RemoveMarker("Khanx.Sign" + blockPosition + player.Name, player);
-                }
-            }
-
-            //OnAdd
-            if (typeOld == BlockTypes.BuiltinBlocks.Types.air)
-            {
-                if (SignManager.signs.ContainsKey(blockPosition))
-                    return;
-
-                if (origin.Type == BlockChangeRequestOrigin.EType.Player)
-                    SignManager.signs.Add(blockPosition, new Sign(origin.AsPlayer.ID, "-"));
-                else
-                    SignManager.signs.Add(blockPosition, new Sign(new NetworkID(), "-"));
-            }
-        }
-    }
-
     public struct Sign
     {
         public NetworkID owner;
