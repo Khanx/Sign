@@ -56,6 +56,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SignOwner.cs" />
     <Compile Include="SignManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignType.cs" />
