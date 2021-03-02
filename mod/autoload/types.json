@@ -1,0 +1,38 @@
+{
+  "Khanx.Sign" : {
+    "categories" : [
+      "decorative",
+	  "khanx"
+    ],
+    "customData" : {
+      "colors" : ["#ff0000->#c89234", "#00ff00->#6b552d", "#0000ff->#ffffff"]
+    },
+    "isSolid": false,
+    "icon" : "./../icons/sign.png",
+    "needsBase": "true",
+    "sideall": "planks",
+	"onPlaceAudio" : "woodPlace",
+	"onRemoveAudio" : "woodDeleteHeavy",
+    "isRotatable" : true,
+    "rotatablex-" : "Khanx.Signx-",
+    "rotatablex+" : "Khanx.Signx+",
+    "rotatablez-" : "Khanx.Signz-",
+    "rotatablez+" : "Khanx.Signz+"
+  },
+  "Khanx.Signx-" : {
+    "mesh": "./../meshes/signx-.ply",
+    "parentType" : "Khanx.Sign"
+  },
+  "Khanx.Signx+" : {
+    "mesh": "./../meshes/signx+.ply",
+    "parentType" : "Khanx.Sign"
+  },
+  "Khanx.Signz-" : {
+    "mesh": "./../meshes/signz-.ply",
+    "parentType" : "Khanx.Sign"
+  },
+  "Khanx.Signz+" : {
+    "mesh": "./../meshes/signz+.ply",
+    "parentType" : "Khanx.Sign"
+  }
+}

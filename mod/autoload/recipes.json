@@ -1,0 +1,15 @@
+[
+	{
+		"defaultLimit" : 0,
+		"defaultPriority" : -100,
+		"name" : "Khanx.player.Sign",
+		"requires" : [
+			{"amount":2,"type":"planks"},
+			{"type":"coppertools"},
+			{"amount":3,"type":"coppernails"}
+		],
+		"results" : [
+			{"type":"Khanx.Sign"}
+		]
+	}
+]

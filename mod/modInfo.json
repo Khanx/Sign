@@ -1,0 +1,33 @@
+[
+	{
+		"name": "Sign",
+		"version": "0.1.1.5",
+		"enableddefault": true,
+		"description" : "The player will able to place signs with text.",
+		"dllpath": "Sign.dll",
+		"compatibleversions":
+			[
+				"0.8.0"
+			],
+		"jsonFiles" : [
+			{
+				"relativePath" : "./autoload/types.json",
+				"fileType" : "addNewTypes",
+				"index" : -1000000
+			},
+			{
+				"relativePath" : "./autoload/recipes.json",
+				"fileType" : "addOrReplacePlayerRecipes",
+				"index" : -1000000,
+			},
+			{
+				"fileType": "addOrOverrideLocalization",
+				"relativePath": "localization/en-US/en-US.json"
+			},
+			{
+				"fileType": "addOrOverrideLocalization",
+				"relativePath": "localization/es-ES/es-ES.json"
+			}
+		]
+	}
+]

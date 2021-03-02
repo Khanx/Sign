@@ -1,0 +1,10 @@
+{
+	"types":
+	{
+		"Khanx.Sign": "Cartel"
+	},
+	"typeuses":
+	{
+		"Khanx.Sign": "¿Quieres dejar tu marca en el mundo? El cartel es la forma ideal de hacerlo ;-)"
+	}
+}

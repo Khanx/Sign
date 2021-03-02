@@ -1,0 +1,10 @@
+{
+	"types":
+	{
+		"Khanx.Sign": "Sign"
+	},
+	"typeuses":
+	{
+		"Khanx.Sign": "Do you want to leave your mark in the world? The sign is the ideal way to do it ;-)"
+	}
+}
