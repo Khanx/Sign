@@ -17,10 +17,15 @@ namespace Sign
 
         ItemTypes.ItemType[] types = new ItemTypes.ItemType[]
             {
+                 // Thanks to Boneidle for the models!
                  ItemTypes.GetType("Khanx.Signx-"),
                  ItemTypes.GetType("Khanx.Signx+"),
                  ItemTypes.GetType("Khanx.Signz-"),
-                 ItemTypes.GetType("Khanx.Signz+")
+                 ItemTypes.GetType("Khanx.Signz+"),
+                 ItemTypes.GetType("Khanx.WallSignx-"),
+                 ItemTypes.GetType("Khanx.WallSignx+"),
+                 ItemTypes.GetType("Khanx.WallSignz-"),
+                 ItemTypes.GetType("Khanx.WallSignz+")
             };
 
         public virtual void OnChangedWithType(Chunk chunk, BlockChangeRequestOrigin origin, Vector3Int blockPosition, ItemTypes.ItemType typeOld, ItemTypes.ItemType typeNew)

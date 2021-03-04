@@ -60,6 +60,7 @@
     <Compile Include="SignManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignType.cs" />
+    <Compile Include="WallSign.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

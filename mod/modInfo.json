@@ -1,7 +1,7 @@
 [
 	{
 		"name": "Sign",
-		"version": "0.1.1.5",
+		"version": "0.1.1.7",
 		"enableddefault": true,
 		"description" : "The player will able to place signs with text.",
 		"dllpath": "Sign.dll",
