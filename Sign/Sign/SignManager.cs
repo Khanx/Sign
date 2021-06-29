@@ -96,14 +96,18 @@ namespace Sign
 
             Sign s = signs[position];
 
-            NetworkMenu signMenu = new NetworkMenu();
-            signMenu.Identifier = "Sign";
+            NetworkMenu signMenu = new NetworkMenu
+            {
+                Identifier = "Sign"
+            };
             signMenu.LocalStorage.SetAs("header", "Sign");
 
             if (signs[position].owner == player.ID || PermissionsManager.HasPermission(player, "khanx.setsign"))
             {
-                InputField inputField = new InputField("Khanx.Sign." + position.x + "." + position.y + "." + position.z, -1, 100);
-                inputField.Multiline = true;
+                InputField inputField = new InputField("Khanx.Sign." + position.x + "." + position.y + "." + position.z, -1, 100)
+                {
+                    Multiline = true
+                };
 
                 //default value
                 signMenu.LocalStorage.SetAs("Khanx.Sign." + position.x + "." + position.y + "." + position.z, s.text);

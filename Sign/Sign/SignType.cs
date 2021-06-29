@@ -15,7 +15,7 @@ namespace Sign
 
         public IEnumerable<ItemTypes.ItemType> TypesToRegister { get { return types; } }
 
-        ItemTypes.ItemType[] types = new ItemTypes.ItemType[]
+        readonly ItemTypes.ItemType[] types = new ItemTypes.ItemType[]
             {
                  // Thanks to Boneidle for the models!
                  ItemTypes.GetType("Khanx.Signx-"),
