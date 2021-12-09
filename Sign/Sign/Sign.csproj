@@ -36,12 +36,19 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\Archivos de programa\Steam\steamapps\common\Colony Survival\colonyserver_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Archivos de programa\Steam\steamapps\common\Colony Survival\colonyserver_Data\Managed\Unity.Mathematics.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>..\..\..\..\Archivos de programa\Steam\steamapps\common\Colony Survival\colonyserver_Data\Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
@@ -56,11 +63,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Vector3IntConverter.cs" />
     <Compile Include="SignOwner.cs" />
     <Compile Include="SignManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignType.cs" />
     <Compile Include="WallSign.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

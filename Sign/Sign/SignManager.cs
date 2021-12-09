@@ -1,14 +1,19 @@
-﻿using System.IO;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Pipliz;
-using Pipliz.JSON;
 
-using Shared;
+
 using NetworkUI;
 using NetworkUI.Items;
+
 using colonyserver.Assets.UIGeneration;
 using static colonyshared.NetworkUI.UIGeneration.WorldMarkerSettings;
+using Shared;
+
+using Saving;
+using System.Linq;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace Sign
 {
@@ -24,6 +29,23 @@ namespace Sign
         }
     }
 
+    public struct Vector3
+    {
+        public int x, y, z;
+
+        public Vector3(int x, int y, int z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        public Vector3Int getVector3Int()
+        {
+            return new Vector3Int(x, y, z);
+        }
+    }
+
     [ModLoader.ModManager]
     public static class SignManager
     {
@@ -33,20 +55,14 @@ namespace Sign
         [ModLoader.ModCallback(ModLoader.EModCallbackType.AfterWorldLoad, "Khanx.Sign.Load")]
         public static void LoadSigns()
         {
-            signFile = "./gamedata/savegames/" + ServerManager.WorldName + "/signs.json";
+            WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
 
-            if (!File.Exists(signFile))
-                return;
-
-            JSONNode json = JSON.Deserialize(signFile);
-
-            foreach (JSONNode sign in json.LoopArray())
+            if (worldDataBase != null)
             {
-                Vector3Int pos = (Vector3Int)sign["position"];
-                NetworkID owner = NetworkID.Parse(sign.GetAs<string>("owner"));
-                string text = sign.GetAs<string>("text");
-
-                signs.Add(pos, new Sign(owner, text));
+                if (worldDataBase.TryGetWorldKeyValue("Signs", out JToken jSigns) && jSigns != null)
+                {
+                    signs = JsonConvert.DeserializeObject<List< KeyValuePair<Vector3Int, Sign>>>(jSigns.ToString(), new Vector3IntConverter()).ToDictionary(kx => kx.Key, kx => kx.Value);
+                }
             }
         }
 
@@ -54,27 +70,20 @@ namespace Sign
         [ModLoader.ModCallback(ModLoader.EModCallbackType.OnQuit, "Khanx.Sign.Save")]
         public static void SaveSigns()
         {
-            if (File.Exists(signFile))
-                File.Delete(signFile);
-
-            if (signs.Count == 0)
-                return;
-
-            JSONNode json = new JSONNode(NodeType.Array);
-
-            foreach (Vector3Int pos in signs.Keys)
+            WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
+            if (worldDataBase != null)
             {
-                Sign sign = signs[pos];
-
-                JSONNode jsonSign = new JSONNode(NodeType.Object);
-                jsonSign.SetAs("position", (JSONNode)pos);
-                jsonSign.SetAs("owner", sign.owner.ToString());
-                jsonSign.SetAs("text", sign.text);
-
-                json.AddToArray(jsonSign);
+                if (signs.Count == 0)
+                {
+                    worldDataBase.SetWorldKeyValue("Signs", "");
+                }
+                else
+                {
+                    string json = JsonConvert.SerializeObject(signs.ToArray(), new Vector3IntConverter());
+                    worldDataBase.SetWorldKeyValue("Signs", JToken.Parse(json));
+                }
+                    
             }
-
-            JSON.Serialize(signFile, json, 2);
         }
 
         [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerClicked, "Khanx.Sign.OnPlayerClickedType")]
@@ -128,7 +137,7 @@ namespace Sign
         {
             if (data.InputfieldIdentifier.StartsWith("Khanx.Sign."))
             {
-                data.Storage.TryGetAsOrDefault<string>(data.InputfieldIdentifier, out string text, "-");
+                string text = data.Storage.GetAsOrDefault<string>(data.InputfieldIdentifier, "-");
 
                 string[] sPosition = data.InputfieldIdentifier.Substring(11).Split('.'); // 11 = Khanx.Sign.
                 Vector3Int position = new Vector3Int(int.Parse(sPosition[0]), int.Parse(sPosition[1]), int.Parse(sPosition[2]));
@@ -149,7 +158,6 @@ namespace Sign
         [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerMoved, "Khanx.Sign.OnPlayerMoved")]
         public static void SendSignMarker(Players.Player player, UnityEngine.Vector3 position)
         {
-
             foreach (var singPosition in signs.Keys)
             {
                 if (Math.ManhattanDistance(new Vector3Int(player.Position), singPosition) < markerDistance)
@@ -161,7 +169,7 @@ namespace Sign
                     UIManager.AddorUpdateWorldMarker("Khanx.Sign" + singPosition + player.Name,
                                                                singText,
                                                                 singPosition + Vector3Int.up,
-                                                                "Khanx.Sign",
+                                                                ItemTypes.GetType("Khanx.Sign").Icon,
                                                                 ToggleType.AlwaysOn,
                                                                 "Khanx.Sign",
                                                                 player);
