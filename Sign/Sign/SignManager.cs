@@ -14,15 +14,16 @@ using Saving;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using Steamworks;
 
 namespace Sign
 {
     public struct Sign
     {
-        public NetworkID owner;
+        public CSteamID owner;
         public string text;
 
-        public Sign(NetworkID owner, string text)
+        public Sign(CSteamID owner, string text)
         {
             this.owner = owner;
             this.text = text.Trim();
@@ -101,7 +102,7 @@ namespace Sign
             Vector3Int position = playerClickedData.GetVoxelHit().BlockHit;
 
             if (!signs.ContainsKey(position))
-                signs.Add(position, new Sign(player.ID, "-"));
+                signs.Add(position, new Sign(player.ID.SteamID, "-"));
 
             Sign s = signs[position];
 
@@ -111,7 +112,7 @@ namespace Sign
             };
             signMenu.LocalStorage.SetAs("header", "Sign");
 
-            if (signs[position].owner == player.ID || PermissionsManager.HasPermission(player, "khanx.setsign"))
+            if (signs[position].owner == player.ID.SteamID || PermissionsManager.HasPermission(player, "khanx.setsign"))
             {
                 InputField inputField = new InputField("Khanx.Sign." + position.x + "." + position.y + "." + position.z, -1, 100)
                 {
@@ -142,7 +143,7 @@ namespace Sign
                 string[] sPosition = data.InputfieldIdentifier.Substring(11).Split('.'); // 11 = Khanx.Sign.
                 Vector3Int position = new Vector3Int(int.Parse(sPosition[0]), int.Parse(sPosition[1]), int.Parse(sPosition[2]));
 
-                Sign sign = signs.GetValueOrDefault(position, new Sign(data.Player.ID, text));
+                Sign sign = signs.GetValueOrDefault(position, new Sign(data.Player.ID.SteamID, text));
 
                 sign.text = text;
 

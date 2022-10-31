@@ -51,9 +51,7 @@ namespace Sign
                     return;
 
                 if (origin.Type == BlockChangeRequestOrigin.EType.Player)
-                    SignManager.signs.Add(blockPosition, new Sign(origin.AsPlayer.ID, "-"));
-                else
-                    SignManager.signs.Add(blockPosition, new Sign(new NetworkID(), "-"));
+                    SignManager.signs.Add(blockPosition, new Sign(origin.AsPlayer.ID.SteamID, "-"));
             }
         }
     }
